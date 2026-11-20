@@ -81,6 +81,13 @@ def main():
     if digest != hashlib.sha256(data).hexdigest():
         print("copy mismatch: output differs from entry.png", file=sys.stderr)
         raise SystemExit(1)
+    # Re-read the copy and confirm what actually landed is still a whole
+    # 1024x1024 image, not just the right bytes on disk.
+    out_kind, out_data = read_entry(target)
+    out_w, out_h = jpeg_size(out_data) if out_kind == "JPEG" else png_size(out_data)
+    if (out_w, out_h) != (SIDE, SIDE):
+        print(f"output is {out_w}x{out_h}, not 1024x1024", file=sys.stderr)
+        raise SystemExit(1)
     print(f"wrote {target} ({kind} {width}x{height}, {len(data)} bytes, "
           f"sha256 {digest})")
 
